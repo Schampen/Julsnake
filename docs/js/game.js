@@ -238,13 +238,13 @@ function update() {
         if (i == 0 && tails[i].dir == "up") {
             tails[i].setPosition(tails[i].x,tails[i].y - tails[i].speed);
             if (tails[i].y == player.y) {
-                tails[i].dir = player.dir;
+                tails[i].dir = player.direction;
             }
 
         } else if (i == 0 && tails[i].dir == "down") {
             tails[i].setPosition(tails[i].x,tails[i].y + tails[i].speed);
             if (tails[i].y == player.y) {
-                tails[i].dir = player.dir;
+                tails[i].dir = player.direction;
             }
 
         } else if (i == 0 && tails[i].dir == "left") {
