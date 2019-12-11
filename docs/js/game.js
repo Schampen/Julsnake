@@ -1,4 +1,4 @@
-const WIDTH = 32*24; // canvas elementets bredd
+const WIDTH = 32*48; // canvas elementets bredd
 const HEIGHT = 32*24; // canvas elementets höjd
 
 let canvas = document.createElement('canvas'); // skapa canvaselementet
@@ -31,10 +31,12 @@ let Player = function(x,y,width,height) {
     player.speedY = 4;
     player.color = "black";
     player.direction = "left";
+    player.img = sprites.tomte;
+    player.loop = [0,1,2,3,4,5,6,7,8];
     player.alive=true;
     player.draw = function() {
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x,this.y,this.width,this.height);
+        ctx.drawImage(this.img,0,0,64,128,this.x,this.y,this.width,this.height);
     }
     return player;
 }
@@ -43,14 +45,16 @@ let Tail = function(x,y) {
     const tail = {};
     tail.x = x;
     tail.y = y;
-    tail.width = 32;
-    tail.height = 32;
+    tail.width = 64;
+    tail.height = 64;
     tail.dir = "left";
     tail.color = "black";
     tail.speed = 4;
+    tail.img = sprites.elf;
+    tail.loop= [0,1,2,3,4,5,6,7,8];
     tail.draw = function() {
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x,this.y,this.width,this.height);
+        ctx.drawImage(this.img,0,0,64,128,this.x,this.y,this.width,this.height);
     }
     tail.setPosition = function(x,y) {
         this.x = x;
@@ -68,7 +72,6 @@ let Gift = function(x,y,width,height) {
     gift.color = "yellow";
     gift.img = sprites.gift;
     gift.draw = function() {
-        ctx.fillStyle = this.color;
         ctx.drawImage(this.img,this.x,this.y,this.width,this.height);
     }
 
@@ -79,7 +82,7 @@ let points = 0;
 
 let bg = new background();
 
-let player = Player(WIDTH/2,HEIGHT/2-32,32,32);
+let player = Player(WIDTH/2,HEIGHT/2-64,64,64);
 
 let canvasLoop = window.requestAnimationFrame(step);
 
@@ -102,7 +105,7 @@ function step(timestamp) {
 
     var col = colCheck(player,gift);
     if (col) {
-        this.newgift(random(68, WIDTH-68) ,random(80,HEIGHT-82));
+        this.newgift(random(70, WIDTH-70) ,random(80,HEIGHT-82));
         col = false;
         points += 1;
         this.addTail();
@@ -125,15 +128,16 @@ function step(timestamp) {
 
     this.update();
 
-    if (player.x - 36 < 0 || player.x + player.width + 36 > WIDTH || player.y - 48 < 0 || player.y + player.height + 50 > HEIGHT ) {
+    if (player.x - 70 < 0 || player.x + player.width + 70 > WIDTH || player.y - 48 < 0 || player.y + player.height + 34 > HEIGHT ) {
         player.alive = false;
     }
 
-    player.draw();
 
     for (let i in tails) {
         tails[i].draw();
     }    
+
+    player.draw();
 
     ctx.font = "32px Arial";
         ctx.fillStyle = "black";
@@ -208,22 +212,22 @@ function addTail() {
         var tail = new Tail(tails[lastTail].x, tails[lastTail].y)
         //up
         if (tails[lastTail].dir == "up") {
-            tail.y = tails[lastTail].y + 32;
+            tail.y = tails[lastTail].y + 64;
             tail.dir = "up";
         }
         //right
         if (tails[lastTail].dir == "right") {
-            tail.x = tails[lastTail].x - 32;
+            tail.x = tails[lastTail].x - 64;
             tail.dir = "right";
         }
         //down
         if (tails[lastTail].dir == "down") {
-            tail.y = tails[lastTail].y - 32;
+            tail.y = tails[lastTail].y - 64;
             tail.dir = "down";
         }
         //left
         if (tails[lastTail].dir == "left") {
-            tail.x = tails[lastTail].x + 32;
+            tail.x = tails[lastTail].x + 64;
             tail.dir = "left";
         }
     }

@@ -14,4 +14,6 @@ Preload = new class FileLoader{
 var sprites = {
     background: Preload.importSprite('img/bakgrund.png'),
     gift: Preload.importSprite('img/julklapp.png'),
+    elf: Preload.importSprite('img/elf.png'),
+    tomte: Preload.importSprite('img/tomte.png'),
 }
