@@ -7,20 +7,34 @@ canvas.setAttribute("class", "border"); // ge canvas klassen border så vi marke
 canvas.width  = WIDTH; // sätt elementets bredd
 canvas.height = HEIGHT; // ... & höjd
 
+let background = function() {
+    const bg = {};
+    bg.height = HEIGHT;
+    bg.width = WIDTH;
+    bg.x = 0;
+    bg.y = 0
+    bg.img = sprites.background;
+    bg.draw = function() {
+        ctx.drawImage(this.img,this.x,this.y,this.width,this.height);
+    }
+    return bg;
+}
+
+
 let Player = function(x,y,width,height) {
     const player = {};
     player.x = x;
     player.y = y;
     player.width = width;
     player.height = height;
-    player.speedX = width/10;
-    player.speedY = height/10;
+    player.speedX = 4;
+    player.speedY = 4;
     player.color = "black";
     player.direction = "left";
     player.alive=true;
     player.draw = function() {
-        ctx.fillStyle = player.color;
-        ctx.fillRect(player.x,player.y,player.width,player.height);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
     }
     return player;
 }
@@ -31,18 +45,16 @@ let Tail = function(x,y) {
     tail.y = y;
     tail.width = 32;
     tail.height = 32;
-    tail.lastX = 0;
-    tail.lastY = 0;
+    tail.dir = "left";
     tail.color = "black";
+    tail.speed = 4;
     tail.draw = function() {
-        ctx.fillStyle = tail.color;
-        ctx.fillRect(tail.x,tail.y,tail.width,tail.height);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x,this.y,this.width,this.height);
     }
     tail.setPosition = function(x,y) {
-        tail.lastX = tail.x;
-        tail.lastY = tail.y;
-        tail.x = x;
-        tail.y = y;
+        this.x = x;
+        this.y = y;
     }
     return tail;
 }
@@ -54,9 +66,10 @@ let Gift = function(x,y,width,height) {
     gift.width = width;
     gift.height = height;
     gift.color = "yellow";
+    gift.img = sprites.gift;
     gift.draw = function() {
-        ctx.fillStyle = gift.color;
-        ctx.fillRect(gift.x,gift.y,gift.width,gift.height);
+        ctx.fillStyle = this.color;
+        ctx.drawImage(this.img,this.x,this.y,this.width,this.height);
     }
 
     return gift;
@@ -64,13 +77,16 @@ let Gift = function(x,y,width,height) {
 
 let points = 0;
 
+let bg = new background();
+
 let player = Player(WIDTH/2,HEIGHT/2-32,32,32);
 
 let canvasLoop = window.requestAnimationFrame(step);
 
-let gift = Gift(random(32, WIDTH-32) ,random(32,HEIGHT-32),32,32);
+let gift = Gift(random(68, WIDTH-68) ,random(80,HEIGHT-82),32,32);
 
 let tails = new Array();
+
 
 let start, timestamp;
 function step(timestamp) {
@@ -78,16 +94,15 @@ function step(timestamp) {
     if (!start) start = timestamp;
     let progress = timestamp - start;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; // getRandomColor()???
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    bg.draw();
 
     this.logic();
 
 
     var col = colCheck(player,gift);
     if (col) {
-        this.newgift(random(32,WIDTH-32),random(32,HEIGHT-32));
+        this.newgift(random(68, WIDTH-68) ,random(80,HEIGHT-82));
         col = false;
         points += 1;
         this.addTail();
@@ -108,11 +123,11 @@ function step(timestamp) {
         player.x -= player.speedX; 
     }
 
-    if (player.x < 0 || player.x + player.width > WIDTH || player.y < 0 || player.y + player.height > HEIGHT ) {
+    this.update();
+
+    if (player.x - 36 < 0 || player.x + player.width + 36 > WIDTH || player.y - 48 < 0 || player.y + player.height + 50 > HEIGHT ) {
         player.alive = false;
     }
-
-    this.update();
 
     player.draw();
 
@@ -121,7 +136,7 @@ function step(timestamp) {
     }    
 
     ctx.font = "32px Arial";
-        ctx.fillStyle = "white";
+        ctx.fillStyle = "black";
         ctx.fillText("points: " + points, 4, 30);
 
 
@@ -170,38 +185,46 @@ function addTail() {
         //up
         if (player.direction == "up") {
             tail.y = player.y + player.height;
+            tail.dir = "up";
         }
         //right
         if (player.direction == "right") {
             tail.x = player.x - player.width;
+            tail.dir = "right";
         }
         //down
         if (player.direction == "down") {
             tail.y = player.y - player.height;
+            tail.dir = "down";
         }
         //left
         if (player.direction == "left") {
             tail.x = player.x + player.width;
+            tail.dir = "left";
         }
     } else if (tails.length > 0) {
         let lastTail = tails.length - 1;
         
         var tail = new Tail(tails[lastTail].x, tails[lastTail].y)
         //up
-        if (player.direction == "up") {
+        if (tails[lastTail].dir == "up") {
             tail.y = tails[lastTail].y + 32;
+            tail.dir = "up";
         }
         //right
-        if (player.direction == "right") {
+        if (tails[lastTail].dir == "right") {
             tail.x = tails[lastTail].x - 32;
+            tail.dir = "right";
         }
         //down
-        if (player.direction == "down") {
+        if (tails[lastTail].dir == "down") {
             tail.y = tails[lastTail].y - 32;
+            tail.dir = "down";
         }
         //left
-        if (player.direction == "left") {
+        if (tails[lastTail].dir == "left") {
             tail.x = tails[lastTail].x + 32;
+            tail.dir = "left";
         }
     }
 
@@ -212,24 +235,59 @@ function addTail() {
 
 function update() {
     for (let i in tails) {
-        if (i == 0 && player.direction == "up") {
-            tails[i].setPosition(player.x, player.y + player.height);
+        if (i == 0 && tails[i].dir == "up") {
+            tails[i].setPosition(tails[i].x,tails[i].y - tails[i].speed);
+            if (tails[i].y == player.y) {
+                tails[i].dir = player.dir;
+            }
 
-        } else if (i == 0 && player.direction == "down") {
-            tails[i].setPosition(player.x, player.y - player.height);
+        } else if (i == 0 && tails[i].dir == "down") {
+            tails[i].setPosition(tails[i].x,tails[i].y + tails[i].speed);
+            if (tails[i].y == player.y) {
+                tails[i].dir = player.dir;
+            }
 
-        } else if (i == 0 && player.direction == "left") {
-            tails[i].setPosition(player.x + player.width, player.y);
+        } else if (i == 0 && tails[i].dir == "left") {
+            tails[i].setPosition(tails[i].x - tails[i].speed,tails[i].y);
+            if (tails[i].x == player.x) {
+                tails[i].dir = player.direction;
+            }
 
-        } else if (i == 0 && player.direction == "right") {
-            tails[i].setPosition(player.x - player.width, player.y);
+        } else if (i == 0 && tails[i].dir == "right") {
+            tails[i].setPosition(tails[i].x + tails[i].speed,tails[i].y);
+            if (tails[i].x == player.x) {
+                tails[i].dir = player.direction;
+            }
 
-        } else if (i == 0 && player.alive == false) {
-            tails[i].setPosition(tails[i].x, tails[i].y);
+        } else if (i > 0 && tails[i].dir == "left")  {
+            tails[i].setPosition(tails[i].x - tails[i].speed, tails[i].y);
+            if (tails[i].x == tails[i-1].x) {
+                tails[i].dir = tails[i-1].dir;
+                
+            }
 
-        } else if (i > 0) {
-            tails[i].setPosition(tails[i - 1].lastX,tails[i - 1].lastY);
-        }        
+        }  else if (i > 0 && tails[i].dir == "right")  {
+            tails[i].setPosition(tails[i].x + tails[i].speed,tails[i].y);
+            if (tails[i].x == tails[i-1].x) {
+                tails[i].dir = tails[i-1].dir;
+            }
+
+        }  else if (i > 0 && tails[i].dir == "up")  {
+            tails[i].setPosition(tails[i].x,tails[i].y - tails[i].speed);
+            if (tails[i].y == tails[i-1].y) {
+                tails[i].dir = tails[i-1].dir;
+            }
+
+        }  else if (i > 0 && tails[i].dir == "down")  {
+            tails[i].setPosition(tails[i].x,tails[i].y + tails[i].speed);
+            if (tails[i].y == tails[i-1].y) {
+                tails[i].dir = tails[i-1].dir;
+            }
+
+        } else if (player.alive == false) {
+            tails[i].setPosition(player.x, player.y);
+            tails[i].dir = "none";  
+        }
     }
 }
 
