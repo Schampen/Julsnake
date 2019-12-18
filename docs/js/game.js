@@ -201,7 +201,10 @@ function step(timestamp) {
     player.draw();
 
     ctx.font = "32px Arial";
-        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 4;
+        ctx.strokeText("points: " + points, 4, 30);
+        ctx.fillStyle = "blue";
         ctx.fillText("points: " + points, 4, 30);
 
 
