@@ -1,6 +1,13 @@
 const WIDTH = 32*48; // canvas elementets bredd
 const HEIGHT = 32*24; // canvas elementets höjd
 
+window.addEventListener("keydown", function (e) {
+    // space and arrow keys
+    if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
+}, false);
+
 let canvas = document.createElement('canvas'); // skapa canvaselementet
 let ctx = canvas.getContext('2d'); // spara canvaselementets context, vi behöver det för att kunna rita
 canvas.setAttribute("class", "border"); // ge canvas klassen border så vi markerar ut det
@@ -32,11 +39,21 @@ let Player = function(x,y,width,height) {
     player.color = "black";
     player.direction = "left";
     player.img = sprites.tomte;
+    player.curDir = 2;
     player.loop = [0,1,2,3,4,5,6,7,8];
     player.alive=true;
+    player.loopIndex = 0;
     player.draw = function() {
-        ctx.fillStyle = this.color;
-        ctx.drawImage(this.img,0,0,64,128,this.x,this.y,this.width,this.height);
+        if (this.direction == "left") {
+            this.curDir = 2;
+        } else if (this.direction == "right") {   
+            this.curDir = 1;
+        } else if (this.direction == "down") {
+            this.curDir = 0;
+        } else if (this.direction == "up") {
+            this.curDir = 3;
+        }
+        ctx.drawImage(this.img,64*this.loop[this.loopIndex],128*this.curDir,64,128,this.x,this.y,this.width,this.height);
     }
     return player;
 }
@@ -50,11 +67,21 @@ let Tail = function(x,y) {
     tail.dir = "left";
     tail.color = "black";
     tail.speed = 4;
+    tail.curDir = 2;
     tail.img = sprites.elf;
     tail.loop= [0,1,2,3,4,5,6,7,8];
+    tail.loopIndex = 0;
     tail.draw = function() {
-        ctx.fillStyle = this.color;
-        ctx.drawImage(this.img,0,0,64,128,this.x,this.y,this.width,this.height);
+        if (this.dir == "left") {
+            this.curDir = 2;
+        } else if (this.dir == "right") {   
+            this.curDir = 1;
+        } else if (this.dir == "down") {
+            this.curDir = 0;
+        } else if (this.dir == "up") {
+            this.curDir = 3;
+        }
+        ctx.drawImage(this.img,64*this.loop[this.loopIndex],128*this.curDir,64,128,this.x,this.y,this.width,this.height);
     }
     tail.setPosition = function(x,y) {
         this.x = x;
@@ -86,10 +113,11 @@ let player = Player(WIDTH/2,HEIGHT/2-64,64,64);
 
 let canvasLoop = window.requestAnimationFrame(step);
 
-let gift = Gift(random(68, WIDTH-68) ,random(80,HEIGHT-82),32,32);
+let gift = Gift(random(68, WIDTH-120) ,random(80,HEIGHT-82),32,32);
 
 let tails = new Array();
-
+let frameCount = 0;
+let turnLimiter = 0;
 
 let start, timestamp;
 function step(timestamp) {
@@ -100,12 +128,45 @@ function step(timestamp) {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     bg.draw();
 
-    this.logic();
 
+    this.logic();
+      
+    
+    for (let i in tails) {
+        if (i > 0) {
+            var colb = this.colCheck(player,tails[i]);
+        if (colb) {
+            player.alive = false;
+        }
+        }
+    }
+    
+
+    frameCount++;
+    if (frameCount >= 3) {
+        frameCount = 0;
+        if (player.alive) {
+            player.loopIndex++;
+        }
+        if (player.loopIndex >= player.loop.length) {
+            player.loopIndex = 0;
+        }
+        for (let i in tails) {
+            if (i == 0 && player.alive) {
+                tails[i].loopIndex++;
+            } else if (i > 0 && tails[i].dir != "none") {
+                tails[i].loopIndex++;
+            }
+            if (tails[i].loopIndex >= tails[i].loop.length) {
+            tails[i].loopIndex = 0;
+            }
+        }
+    }
+    
 
     var col = colCheck(player,gift);
     if (col) {
-        this.newgift(random(70, WIDTH-70) ,random(80,HEIGHT-82));
+        this.newgift(random(68, WIDTH-120) ,random(80,HEIGHT-82));
         col = false;
         points += 1;
         this.addTail();
@@ -128,7 +189,7 @@ function step(timestamp) {
 
     this.update();
 
-    if (player.x - 70 < 0 || player.x + player.width + 70 > WIDTH || player.y - 48 < 0 || player.y + player.height + 34 > HEIGHT ) {
+    if (player.x - 60 < 0 || player.x + player.width + 60 > WIDTH || player.y - 48 < 0 || player.y + player.height + 34 > HEIGHT ) {
         player.alive = false;
     }
 
